@@ -93,6 +93,13 @@ fn main() {
         return;
     };
     let graphics = select_renderer();
+    // The desktop matches windows to launchers by this id (the Wayland
+    // app_id, the X11 WM_CLASS); without it GNOME's dock shows an unnamed
+    // window with a generic icon. It is the .desktop file's name.
+    #[cfg(all(unix, not(target_vendor = "apple")))]
+    if let Err(error) = slint::set_xdg_app_id("io.github.wilssola.Zapive") {
+        log::warn!("[gfx] cannot set the app id: {error}");
+    }
 
     let mut app_vault = match vault::Vault::new() {
         Ok(vault) => vault,

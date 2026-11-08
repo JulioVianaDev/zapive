@@ -55,7 +55,7 @@ Icon=$APP_ID
 Terminal=false
 Categories=Network;InstantMessaging;Chat;
 Keywords=whatsapp;chat;messaging;zapzap;zapive;
-StartupWMClass=zapive
+StartupWMClass=io.github.wilssola.Zapive
 EOF
 refresh_menus
 

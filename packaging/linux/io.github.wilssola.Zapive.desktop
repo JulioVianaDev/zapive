@@ -8,4 +8,4 @@ Icon=io.github.wilssola.Zapive
 Terminal=false
 Categories=Network;InstantMessaging;Chat;
 Keywords=whatsapp;chat;messaging;
-StartupWMClass=zapive
+StartupWMClass=io.github.wilssola.Zapive
