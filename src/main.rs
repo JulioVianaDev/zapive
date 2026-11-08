@@ -159,9 +159,10 @@ fn main() {
     apply_native_backdrop(&ui);
     ui.set_language_mode(language.as_str().into());
     ui.set_autostart(platform::autostart_enabled());
-    // Both off by default: the current behaviour (no receipts sent, a
-    // revoke keeps its message) is what a fresh install already does.
-    ui.set_send_receipts(app_vault.setting_get("send_receipts").as_deref() == Some("1"));
+    // Read receipts are on unless turned off, so senders see their message
+    // was read once the chat is opened. A revoke keeps its message unless
+    // the user opts in.
+    ui.set_send_receipts(app_vault.setting_get("send_receipts").as_deref() != Some("0"));
     ui.set_apply_deletions(app_vault.setting_get("apply_deletions").as_deref() == Some("1"));
     ui.set_auto_download_photos(
         app_vault.setting_get("auto_download_photos").as_deref() != Some("0"),

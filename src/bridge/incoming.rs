@@ -495,6 +495,8 @@ impl Bridge {
                 && self.ui.window().is_visible();
             if open_chat {
                 self.push_message_row(&jid, &translation_id);
+            }
+            if seen_now {
                 self.send_view_receipts(&jid);
             }
             if !seen_now && !from_me {
