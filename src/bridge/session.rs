@@ -1,6 +1,9 @@
 // Boot, unlock, login events, logout and the session lifecycle.
 use super::*;
 
+// Longer than the ~20 s between codes, so only the end of the round trips it.
+const QR_EXPIRY_MS: u64 = 70_000;
+
 impl Bridge {
     // ---- boot ----
 
@@ -177,6 +180,31 @@ impl Bridge {
         self.finish_loading();
         self.ui.set_qr_image(qr_image(code));
         self.ui.set_status_text(t("status.scan_qr").into());
+        // whatsapp-rust rotates the code about every 20 seconds and, after
+        // the last one, disconnects without an event. A code nothing has
+        // replaced in a while is dead: scanning it only makes the phone
+        // report that it could not connect, so it comes off the screen.
+        self.qr_seq = self.qr_seq.wrapping_add(1);
+        let seq = self.qr_seq;
+        self.once(QR_EXPIRY_MS, move |b| {
+            if b.qr_seq == seq && !b.registered && b.ui.get_screen() == "login" {
+                b.ui.set_qr_image(crate::qr::empty_image());
+                b.ui.set_status_text(t("status.qr_expired").into());
+            }
+        });
+    }
+
+    // The login screen's "Reload QR code": a fresh unpaired client, which
+    // starts a new round of codes. Nothing is paired yet, so the session
+    // store it discards holds no account.
+    pub(super) fn reload_qr(&mut self) {
+        if self.registered {
+            return;
+        }
+        self.qr_seq = self.qr_seq.wrapping_add(1);
+        self.ui.set_qr_image(crate::qr::empty_image());
+        self.ui.set_status_text(t("status.qr_reloading").into());
+        self.wa.send(Cmd::ResetSession);
     }
 
     pub fn on_pairing_code(&mut self, pretty: &str) {

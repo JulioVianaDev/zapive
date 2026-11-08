@@ -520,6 +520,9 @@ msgstr "Ex.: 5511999998888"
 msgid "account.login.phone.request_code"
 msgstr "Gerar código"
 
+msgid "account.login.qr.reload"
+msgstr "Recarregar QR code"
+
 msgid "account.login.qr.back"
 msgstr "‹  Voltar para o QR code"
 
@@ -1025,6 +1028,12 @@ msgid "selection.messages.count.one"
 msgid_plural "selection.messages.count.other"
 msgstr[0] "{n} selecionada"
 msgstr[1] "{n} selecionadas"
+
+msgid "status.qr_expired"
+msgstr "O QR code expirou. Clique em \"Recarregar QR code\" para gerar outro."
+
+msgid "status.qr_reloading"
+msgstr "Gerando um novo QR code…"
 
 msgid "status.scan_qr"
 msgstr "Escanear código QR"

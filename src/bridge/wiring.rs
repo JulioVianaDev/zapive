@@ -151,6 +151,7 @@ pub fn install(ui: &AppWindow, wa: WaService) {
         headless: false,
         accounts_refresh_queued: false,
         wipe_on_logout: false,
+        qr_seq: 0,
         accounts_model: accounts_model.clone(),
         peer_online: false,
         typing_gen: 0,
@@ -314,6 +315,7 @@ pub(super) fn wire_callbacks(ui: &AppWindow) {
     ui.on_translation_language(|kind, value| defer(move |b| b.translation_language(&kind, &value)));
     ui.set_status_text(t("status.connecting").into());
 
+    ui.on_reload_qr(|| defer(|b| b.reload_qr()));
     ui.on_request_pairing_code(|phone| {
         let phone = phone.to_string();
         defer(move |b| b.handle_pairing(&phone));

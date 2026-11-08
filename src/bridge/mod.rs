@@ -123,6 +123,9 @@ pub struct Bridge {
     // Set by the logout dialog: the conversations go with the session.
     // A logout that came from the phone leaves them alone.
     wipe_on_logout: bool,
+    // Bumped on every QR code, so the expiry timer knows whether a newer
+    // one arrived; see on_qr.
+    qr_seq: u64,
     accounts_model: Rc<VecModel<AccountItem>>,
     // The open chat's contact is online; what the header falls back to
     // when a typing/recording line ends.

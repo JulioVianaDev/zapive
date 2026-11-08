@@ -145,6 +145,7 @@ export component AppWindow inherits Window {
     in-out property <bool> pairing-mode: false;
     in-out property <string> pairing-code: "";
     callback request-pairing-code(string);
+    callback reload-qr();
     // Blocking error the user has to answer (session taken over, offline).
     in-out property <bool> alert-open;
     in-out property <string> alert-title;
@@ -971,6 +972,7 @@ export component AppWindow inherits Window {
                             text: root.status-text;
                             color: Theme.text-dim;
                             font-size: 13px;
+                            wrap: word-wrap;
                         }
                         Text { text: @tr("account.login.qr.step_open_whatsapp"); color: Theme.text; font-size: 15px; }
                         Text { text: @tr("account.login.qr.step_linked_devices"); color: Theme.text; font-size: 15px; }
@@ -984,6 +986,7 @@ export component AppWindow inherits Window {
                     }
                     VerticalLayout {
                         alignment: center;
+                        spacing: 16px;
                         Rectangle {
                             width: 264px;
                             height: 264px;
@@ -997,6 +1000,10 @@ export component AppWindow inherits Window {
                                 accessible-role: image;
                                 accessible-label: @tr("accessibility.qr_code");
                             }
+                        }
+                        Button {
+                            text: @tr("account.login.qr.reload");
+                            clicked => { root.reload-qr(); }
                         }
                     }
                 }

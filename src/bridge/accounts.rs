@@ -540,6 +540,7 @@ pub(super) struct AccountState {
     save_queued: bool,
     groups_fetched: bool,
     wipe_on_logout: bool,
+    qr_seq: u64,
     peer_online: bool,
     chat_typing: HashMap<String, HashMap<String, (u64, String)>>,
     presence_subscribed: HashSet<String>,
@@ -588,6 +589,7 @@ impl AccountState {
             save_queued: false,
             groups_fetched: false,
             wipe_on_logout: false,
+            qr_seq: 0,
             peer_online: false,
             chat_typing: HashMap::new(),
             presence_subscribed: HashSet::new(),
@@ -769,6 +771,7 @@ impl Bridge {
         swap(&mut self.save_queued, &mut s.save_queued);
         swap(&mut self.groups_fetched, &mut s.groups_fetched);
         swap(&mut self.wipe_on_logout, &mut s.wipe_on_logout);
+        swap(&mut self.qr_seq, &mut s.qr_seq);
         swap(&mut self.peer_online, &mut s.peer_online);
         swap(&mut self.chat_typing, &mut s.chat_typing);
         swap(&mut self.presence_subscribed, &mut s.presence_subscribed);
