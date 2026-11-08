@@ -12,6 +12,7 @@ impl Drop for InstanceGuard {
     fn drop(&mut self) {
         let _ = std::fs::remove_file(self.directory.join("zapive.pid"));
         let _ = std::fs::remove_file(self.directory.join("zapive.raise"));
+        let _ = std::fs::remove_file(self.directory.join("zapive.quit"));
     }
 }
 
@@ -37,6 +38,8 @@ fn try_claim(directory: &Path) -> io::Result<Option<InstanceGuard>> {
         Err(error) if error.kind() == io::ErrorKind::NotFound => {}
         Err(error) => return Err(error),
     }
+    // A --quit aimed at an instance that has since gone must not end this one.
+    let _ = std::fs::remove_file(directory.join("zapive.quit"));
     std::fs::write(directory.join("zapive.pid"), std::process::id().to_string())?;
     Ok(Some(guard))
 }
@@ -66,6 +69,24 @@ pub fn claim_single_instance() -> Option<InstanceGuard> {
 
 pub fn take_raise_request() -> bool {
     std::fs::remove_file(data_dir().join("zapive.raise")).is_ok()
+}
+
+// `zapive --quit`: asks the running instance to exit, the way a tray's Exit
+// item would. Where the window hides on close, this is how the app ends.
+pub fn request_quit() {
+    let directory = data_dir();
+    match try_claim(&directory) {
+        Ok(Some(_guard)) => println!("ZapZap is not running"),
+        Ok(None) => match std::fs::write(directory.join("zapive.quit"), b"") {
+            Ok(()) => println!("asked the running ZapZap to quit"),
+            Err(error) => eprintln!("[single] cannot request quit: {error}"),
+        },
+        Err(error) => eprintln!("[single] cannot check the running instance: {error}"),
+    }
+}
+
+pub fn take_quit_request() -> bool {
+    std::fs::remove_file(data_dir().join("zapive.quit")).is_ok()
 }
 
 #[cfg(test)]
@@ -116,9 +137,11 @@ mod tests {
         let directory = TempDirectory::new();
         std::fs::write(directory.0.join("zapive.pid"), "1").unwrap();
         std::fs::write(directory.0.join("zapive.raise"), b"").unwrap();
+        std::fs::write(directory.0.join("zapive.quit"), b"").unwrap();
         let result = std::panic::catch_unwind(|| {
             let _guard = try_claim(&directory.0).unwrap().unwrap();
             assert!(!directory.0.join("zapive.raise").exists());
+            assert!(!directory.0.join("zapive.quit").exists());
             panic!("release on unwind");
         });
         assert!(result.is_err());

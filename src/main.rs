@@ -89,6 +89,11 @@ fn main() {
         return;
     }
 
+    if std::env::args().any(|a| a == "--quit") {
+        single::request_quit();
+        return;
+    }
+
     let Some(instance_guard) = single::claim_single_instance() else {
         return;
     };
@@ -140,8 +145,8 @@ fn main() {
         return;
     }
 
-    // The login entry passes --autostart; on Windows that means booting
-    // straight into the tray instead of popping the window open.
+    // The login entry passes --autostart; on Windows and Linux that means
+    // booting straight into the background instead of popping the window open.
     let autostarted = std::env::args().any(|a| a == "--autostart");
 
     fonts::install_emoji();
@@ -400,6 +405,10 @@ fn main() {
                 if single::take_raise_request() {
                     raise_window(&handle);
                 }
+                if single::take_quit_request() {
+                    media::clean_notification_thumbnails();
+                    slint::quit_event_loop().ok();
+                }
             },
         );
     }
@@ -411,7 +420,16 @@ fn main() {
     // item and the update restart both call quit_event_loop().
     #[cfg(windows)]
     let park_in_tray = tray.is_some();
-    #[cfg(not(windows))]
+    // Linux has no tray here (GNOME shows none by default), so closing the
+    // window just hides it and every account stays connected. Launching
+    // Zapive again brings it back through the raise marker; `--quit` ends it.
+    #[cfg(target_os = "linux")]
+    let park_in_tray = {
+        ui.window()
+            .on_close_requested(|| slint::CloseRequestResponse::HideWindow);
+        true
+    };
+    #[cfg(not(any(windows, target_os = "linux")))]
     let park_in_tray = false;
 
     if park_in_tray {

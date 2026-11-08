@@ -56,10 +56,17 @@ Terminal=false
 Categories=Network;InstantMessaging;Chat;
 Keywords=whatsapp;chat;messaging;zapzap;zapive;
 StartupWMClass=io.github.wilssola.Zapive
+Actions=quit;
+
+[Desktop Action quit]
+Name=Quit ZapZap
+Name[pt_BR]=Sair do ZapZap
+Exec="$TARGET" --quit
 EOF
 refresh_menus
 
 echo "Installed: search for \"ZapZap\" in your apps."
+echo "Closing the window keeps ZapZap running; right-click its icon -> Quit ZapZap to exit."
 # What the AppImage needs at run time but Ubuntu may not have.
 missing=()
 ldconfig -p 2>/dev/null | grep -q 'libfuse\.so\.2' || missing+=(libfuse2t64)
