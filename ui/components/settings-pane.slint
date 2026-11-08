@@ -120,6 +120,8 @@ export component SettingsLayer inherits ModalLayer {
     callback auto-download-documents-changed(bool);
     in property <bool> auto-download-stickers;
     callback auto-download-stickers-changed(bool);
+    in property <bool> auto-download-groups;
+    callback auto-download-groups-changed(bool);
     in property <length> win-width;
     callback show-shortcuts();
     callback wallpaper-colors-changed(color, color);
@@ -881,6 +883,15 @@ export component SettingsLayer inherits ModalLayer {
                                 Toggle {
                                     on: root.auto-download-stickers;
                                     clicked => { root.auto-download-stickers-changed(!root.auto-download-stickers); }
+                                }
+                            }
+                            SettingsRow {
+                                label: @tr("settings.downloads.groups");
+                                detail: @tr("settings.downloads.groups.description");
+                                icon: @image-url("../icons/users.svg");
+                                Toggle {
+                                    on: root.auto-download-groups;
+                                    clicked => { root.auto-download-groups-changed(!root.auto-download-groups); }
                                 }
                             }
                         }

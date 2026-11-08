@@ -633,6 +633,12 @@ msgstr "Vídeo"
 msgid "info.action.more"
 msgstr "Mais"
 
+msgid "info.action.auto_download_on"
+msgstr "Baixar mídia automaticamente aqui"
+
+msgid "info.action.auto_download_off"
+msgstr "Parar de baixar mídia automaticamente aqui"
+
 msgid "info.action.unmute"
 msgstr "Reativar notificações"
 
@@ -874,7 +880,7 @@ msgid "settings.downloads.title"
 msgstr "Transferências automáticas"
 
 msgid "settings.downloads.voice_hint"
-msgstr "As mensagens de voz são sempre transferidas automaticamente."
+msgstr "As mensagens de voz são baixadas automaticamente, exceto nas conversas com o download automático desligado."
 
 msgid "settings.downloads.photos"
 msgstr "Fotos"
@@ -887,6 +893,9 @@ msgstr "Vídeos"
 
 msgid "settings.downloads.documents"
 msgstr "Documentos"
+
+msgid "settings.downloads.groups"
+msgstr "Em grupos"
 
 msgid "settings.downloads.stickers"
 msgstr "Figurinhas"
@@ -1676,6 +1685,9 @@ msgstr "Baixa documentos automaticamente."
 
 msgid "settings.downloads.photos.description"
 msgstr "Baixa fotos automaticamente."
+
+msgid "settings.downloads.groups.description"
+msgstr "Baixar automaticamente também nos grupos. Desligado: a mídia dos grupos espera você tocar nela, a não ser que o grupo tenha a própria opção ligada (dados do grupo → Mais)."
 
 msgid "settings.downloads.stickers.description"
 msgstr "Baixa figurinhas automaticamente."

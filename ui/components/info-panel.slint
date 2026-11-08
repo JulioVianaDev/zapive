@@ -32,6 +32,8 @@ export component InfoLayer inherits ModalLayer {
     callback clear-chat();
     in property <bool> current-left;
     in property <bool> current-muted;
+    in property <bool> current-auto-download;
+    callback toggle-chat-auto-download();
     callback menu-add-member();
     callback menu-search();
     callback menu-mute(int);
@@ -187,6 +189,11 @@ export component InfoLayer inherits ModalLayer {
                                 icon: root.current-muted ? @image-url("../icons/bell.svg") : @image-url("../icons/bell-off.svg");
                                 label: root.current-muted ? @tr("info.action.unmute") : @tr("info.action.mute");
                                 clicked => { root.menu-mute(root.current-muted ? 0 : -1); }
+                            }
+                            MenuRow {
+                                icon: @image-url("../icons/download.svg");
+                                label: root.current-auto-download ? @tr("info.action.auto_download_off") : @tr("info.action.auto_download_on");
+                                clicked => { root.toggle-chat-auto-download(); }
                             }
                             MenuRow {
                                 icon: @image-url("../icons/archive.svg");

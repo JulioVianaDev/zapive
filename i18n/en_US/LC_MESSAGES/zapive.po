@@ -633,6 +633,12 @@ msgstr "Video"
 msgid "info.action.more"
 msgstr "More"
 
+msgid "info.action.auto_download_on"
+msgstr "Download media automatically here"
+
+msgid "info.action.auto_download_off"
+msgstr "Stop downloading media automatically here"
+
 msgid "info.action.unmute"
 msgstr "Unmute notifications"
 
@@ -874,7 +880,7 @@ msgid "settings.downloads.title"
 msgstr "Automatic downloads"
 
 msgid "settings.downloads.voice_hint"
-msgstr "Voice messages are always downloaded automatically."
+msgstr "Voice messages download automatically, except in chats where automatic downloads are off."
 
 msgid "settings.downloads.photos"
 msgstr "Photos"
@@ -887,6 +893,9 @@ msgstr "Videos"
 
 msgid "settings.downloads.documents"
 msgstr "Documents"
+
+msgid "settings.downloads.groups"
+msgstr "In groups"
 
 msgid "settings.downloads.stickers"
 msgstr "Stickers"
@@ -1674,6 +1683,9 @@ msgstr "Download documents automatically."
 
 msgid "settings.downloads.photos.description"
 msgstr "Download photos automatically."
+
+msgid "settings.downloads.groups.description"
+msgstr "Also download automatically in groups. Off: group media waits until you tap it, unless the group has its own switch on (group info → More)."
 
 msgid "settings.downloads.stickers.description"
 msgstr "Download stickers automatically."

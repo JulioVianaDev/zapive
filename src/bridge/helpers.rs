@@ -137,12 +137,16 @@ pub(super) struct AutoDownload {
 // without the user tapping it. The settings gate what OTHER people send:
 // media I sent myself, from this computer or from my phone, is never held
 // behind a download tap, and a copy already in the cache is always shown.
+// `chat_allows` is the conversation's own switch (see chat_auto_download):
+// when it is off nothing others send downloads by itself, voice notes
+// included; the media stays one tap away.
 pub(super) fn should_auto_download(
     kind: MessageKind,
     sticker: bool,
     voice: bool,
     from_me: bool,
     cached: bool,
+    chat_allows: bool,
     allowed: AutoDownload,
 ) -> bool {
     if kind == MessageKind::Text || cached {
@@ -151,7 +155,13 @@ pub(super) fn should_auto_download(
     if kind == MessageKind::System {
         return false;
     }
-    if from_me || voice {
+    if from_me {
+        return true;
+    }
+    if !chat_allows {
+        return false;
+    }
+    if voice {
         return true;
     }
     if sticker {
@@ -164,6 +174,13 @@ pub(super) fn should_auto_download(
         MessageKind::Doc => allowed.documents,
         _ => false,
     }
+}
+
+// Whether a conversation downloads media by itself: its own switch when
+// the user set one, otherwise on for one-to-one chats and, for groups,
+// whatever Settings > Downloads > "In groups" says.
+pub(super) fn auto_download_for_chat(group: bool, groups_setting: bool, own: Option<bool>) -> bool {
+    own.unwrap_or(!group || groups_setting)
 }
 
 pub(super) fn needs_media(m: &StoredMessage) -> bool {
@@ -292,6 +309,66 @@ mod tests {
     };
 
     #[test]
+    fn a_chat_switched_off_holds_back_everything_others_send() {
+        // Voice notes too: in a muted-for-downloads group they wait for a tap.
+        assert!(!should_auto_download(
+            MessageKind::Audio,
+            false,
+            true,
+            false,
+            false,
+            false,
+            ON
+        ));
+        assert!(!should_auto_download(
+            MessageKind::Image,
+            false,
+            false,
+            false,
+            false,
+            false,
+            ON
+        ));
+        // What I send, text, and what is already cached still show.
+        assert!(should_auto_download(
+            MessageKind::Image,
+            false,
+            false,
+            true,
+            false,
+            false,
+            OFF
+        ));
+        assert!(should_auto_download(
+            MessageKind::Image,
+            false,
+            false,
+            false,
+            true,
+            false,
+            OFF
+        ));
+        assert!(should_auto_download(
+            MessageKind::Text,
+            false,
+            false,
+            false,
+            false,
+            false,
+            OFF
+        ));
+    }
+
+    #[test]
+    fn groups_follow_their_setting_unless_a_chat_says_otherwise() {
+        assert!(auto_download_for_chat(false, false, None));
+        assert!(!auto_download_for_chat(true, false, None));
+        assert!(auto_download_for_chat(true, true, None));
+        assert!(auto_download_for_chat(true, false, Some(true)));
+        assert!(!auto_download_for_chat(false, true, Some(false)));
+    }
+
+    #[test]
     fn my_own_media_is_never_held_behind_a_tap() {
         for (n, kind) in [
             MessageKind::Image,
@@ -303,7 +380,7 @@ mod tests {
         .enumerate()
         {
             assert!(
-                should_auto_download(kind, false, false, true, false, OFF),
+                should_auto_download(kind, false, false, true, false, true, OFF),
                 "kind #{n}"
             );
         }
@@ -313,6 +390,7 @@ mod tests {
             false,
             true,
             false,
+            true,
             OFF
         ));
     }
@@ -325,6 +403,7 @@ mod tests {
             false,
             false,
             false,
+            true,
             OFF
         ));
         assert!(should_auto_download(
@@ -333,6 +412,7 @@ mod tests {
             false,
             false,
             false,
+            true,
             ON
         ));
         let photos_only = AutoDownload {
@@ -345,6 +425,7 @@ mod tests {
             false,
             false,
             false,
+            true,
             photos_only
         ));
         assert!(!should_auto_download(
@@ -353,6 +434,7 @@ mod tests {
             false,
             false,
             false,
+            true,
             photos_only
         ));
         assert!(!should_auto_download(
@@ -361,6 +443,7 @@ mod tests {
             false,
             false,
             false,
+            true,
             photos_only
         ));
     }
@@ -373,6 +456,7 @@ mod tests {
             false,
             false,
             true,
+            true,
             OFF
         ));
         assert!(should_auto_download(
@@ -381,6 +465,7 @@ mod tests {
             true,
             false,
             false,
+            true,
             OFF
         ));
         assert!(!should_auto_download(
@@ -389,6 +474,7 @@ mod tests {
             false,
             false,
             false,
+            true,
             OFF
         ));
     }
@@ -401,6 +487,7 @@ mod tests {
             false,
             false,
             false,
+            true,
             OFF
         ));
         assert!(!should_auto_download(
@@ -409,6 +496,7 @@ mod tests {
             false,
             true,
             false,
+            true,
             ON
         ));
     }

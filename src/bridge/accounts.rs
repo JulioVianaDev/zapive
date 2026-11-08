@@ -747,6 +747,7 @@ fn mirror_settings(from: &AppWindow, to: &AppWindow) {
     to.set_auto_download_video(from.get_auto_download_video());
     to.set_auto_download_documents(from.get_auto_download_documents());
     to.set_auto_download_stickers(from.get_auto_download_stickers());
+    to.set_auto_download_groups(from.get_auto_download_groups());
     to.set_blur_photos(from.get_blur_photos());
     to.set_dark_theme(from.get_dark_theme());
 }

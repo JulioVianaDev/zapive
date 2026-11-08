@@ -179,6 +179,11 @@ fn main() {
     ui.set_auto_download_stickers(
         app_vault.setting_get("auto_download_stickers").as_deref() != Some("0"),
     );
+    // Off unless turned on: groups only download what is opened, or what
+    // a group's own switch allows.
+    ui.set_auto_download_groups(
+        app_vault.setting_get("auto_download_groups").as_deref() == Some("1"),
+    );
 
     // Theme: explicit modes win; "system" follows the OS with a slow poll.
     let theme = app_vault

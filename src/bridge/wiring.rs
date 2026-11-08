@@ -423,6 +423,16 @@ pub(super) fn wire_callbacks(ui: &AppWindow) {
             b.ui.set_send_receipts(on);
         });
     });
+    ui.on_auto_download_groups_changed(|on| {
+        defer(move |b| {
+            if let Some(vault) = &b.vault {
+                vault.setting_set("auto_download_groups", if on { "1" } else { "0" });
+            }
+            b.ui.set_auto_download_groups(on);
+            b.apply_chat_settings_ui();
+        });
+    });
+    ui.on_toggle_chat_auto_download(|| defer(|b| b.toggle_chat_auto_download()));
     ui.on_auto_download_photos_changed(|on| {
         defer(move |b| {
             if let Some(vault) = &b.vault {

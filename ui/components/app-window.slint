@@ -502,6 +502,9 @@ export component AppWindow inherits Window {
     in-out property <bool> current-is-group: false;
     in-out property <bool> current-admin: false;
     in-out property <bool> current-muted: false;
+    // Whether the open chat downloads media by itself (its own switch).
+    in-out property <bool> current-auto-download: true;
+    callback toggle-chat-auto-download();
     in-out property <string> current-mute-label: "";
     in-out property <bool> current-favorite: false;
     in-out property <int> current-ephemeral: 0;
@@ -784,6 +787,8 @@ export component AppWindow inherits Window {
     callback auto-download-documents-changed(bool);
     in-out property <bool> auto-download-stickers: true;
     callback auto-download-stickers-changed(bool);
+    in-out property <bool> auto-download-groups: false;
+    callback auto-download-groups-changed(bool);
 
     // Lightbox
     in-out property <bool> lightbox-open: false;
@@ -5285,6 +5290,8 @@ export component AppWindow inherits Window {
         clear-chat() => { root.clear-chat(); }
         current-left: root.current-left;
         current-muted: root.current-muted;
+        current-auto-download: root.current-auto-download;
+        toggle-chat-auto-download() => { root.toggle-chat-auto-download(); }
         menu-add-member() => { root.menu-add-member(); }
         menu-search() => { root.menu-search(); }
         menu-mute(a0) => { root.menu-mute(a0); }
@@ -5679,6 +5686,8 @@ export component AppWindow inherits Window {
         auto-download-documents-changed(a0) => { root.auto-download-documents-changed(a0); }
         auto-download-stickers: root.auto-download-stickers;
         auto-download-stickers-changed(a0) => { root.auto-download-stickers-changed(a0); }
+        auto-download-groups: root.auto-download-groups;
+        auto-download-groups-changed(a0) => { root.auto-download-groups-changed(a0); }
         win-width: root.width;
     }
 

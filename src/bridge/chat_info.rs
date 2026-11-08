@@ -380,6 +380,8 @@ impl Bridge {
             .set_current_can_send(meta.can_send() && !is_channel(&jid));
         self.ui.set_current_left(meta.left);
         self.ui.set_current_muted(meta.is_muted());
+        self.ui
+            .set_current_auto_download(self.chat_auto_download(&jid));
         self.ui.set_current_mute_label(
             if meta.muted == -1 {
                 t("mute.always")

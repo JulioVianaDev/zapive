@@ -403,8 +403,53 @@ impl Bridge {
             .raw
             .as_ref()
             .is_some_and(|raw| crate::media::cached_path(&m.id, &m.mimetype, raw).1);
-        if should_auto_download(m.kind, m.sticker, voice, m.from_me, cached, allowed) {
+        let chat_allows = self.chat_auto_download(&m.jid);
+        if should_auto_download(
+            m.kind,
+            m.sticker,
+            voice,
+            m.from_me,
+            cached,
+            chat_allows,
+            allowed,
+        ) {
             self.request_media(m);
+        }
+    }
+
+    // The conversation's own download switch, stored per account.
+    fn chat_auto_download_override(&self, jid: &str) -> Option<bool> {
+        let value = self
+            .vault
+            .as_ref()?
+            .setting_get(&format!("auto_download_chat:{jid}"))?;
+        Some(value == "1")
+    }
+
+    pub(super) fn chat_auto_download(&self, jid: &str) -> bool {
+        auto_download_for_chat(
+            is_group(jid),
+            self.ui.get_auto_download_groups(),
+            self.chat_auto_download_override(jid),
+        )
+    }
+
+    // The info panel's switch: flips what this conversation does now and
+    // remembers it, then fetches what the open chat was holding back.
+    pub(super) fn toggle_chat_auto_download(&mut self) {
+        let Some(jid) = self.current_jid.clone() else {
+            return;
+        };
+        let on = !self.chat_auto_download(&jid);
+        if let Some(vault) = &self.vault {
+            vault.setting_set(
+                &format!("auto_download_chat:{jid}"),
+                if on { "1" } else { "0" },
+            );
+        }
+        self.ui.set_current_auto_download(on);
+        if on {
+            self.load_media_for_chat(&jid);
         }
     }
 
