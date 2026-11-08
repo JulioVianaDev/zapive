@@ -147,6 +147,44 @@ pub enum PinError {
     BadFormat,
 }
 
+// ~200 MB of log (4 KiB pages) before a commit checkpoints on its own.
+const WAL_SAFETY_PAGES: i64 = 50_000;
+
+// Keeps vault.db's write-ahead log short from a thread of its own. PASSIVE
+// never waits on, or blocks, the UI thread's readers and writers; it copies
+// what it can and the next round picks up the rest.
+pub fn spawn_checkpointer(path: std::path::PathBuf) {
+    let spawned = std::thread::Builder::new()
+        .name("vault-checkpoint".into())
+        .spawn(move || {
+            let conn = match Connection::open(&path) {
+                Ok(conn) => conn,
+                Err(error) => {
+                    log::warn!("[vault] checkpointer cannot open the vault: {error}");
+                    return;
+                }
+            };
+            loop {
+                std::thread::sleep(std::time::Duration::from_secs(15));
+                let started = std::time::Instant::now();
+                let result = conn.query_row("PRAGMA wal_checkpoint(PASSIVE)", [], |row| {
+                    Ok((row.get::<_, i64>(1)?, row.get::<_, i64>(2)?))
+                });
+                match result {
+                    Ok((log, copied)) if started.elapsed().as_millis() >= 500 => log::info!(
+                        "[vault] checkpoint: {copied}/{log} pages in {} ms",
+                        started.elapsed().as_millis()
+                    ),
+                    Ok(_) => {}
+                    Err(error) => log::warn!("[vault] checkpoint failed: {error}"),
+                }
+            }
+        });
+    if let Err(error) = spawned {
+        log::warn!("[vault] cannot start the checkpointer: {error}");
+    }
+}
+
 impl Vault {
     pub fn new() -> Result<Self, String> {
         Self::open_at(&vault_path().to_string_lossy())
@@ -155,6 +193,17 @@ impl Vault {
     pub fn open_at(path: &str) -> Result<Self, String> {
         let conn = Connection::open(path).map_err(|e| e.to_string())?;
         conn.pragma_update(None, "journal_mode", "WAL")
+            .map_err(|e| e.to_string())?;
+        // Writes happen on the UI thread. In WAL mode NORMAL skips the sync
+        // on every commit and still never corrupts the file; a power cut
+        // can only lose the last moments of writes.
+        conn.pragma_update(None, "synchronous", "NORMAL")
+            .map_err(|e| e.to_string())?;
+        // Folding the log back into the database is spawn_checkpointer's
+        // job, off the UI thread: a commit that did it itself stalled the
+        // window for seconds once a history sync had grown the log to
+        // tens of megabytes. This high mark is only the safety net.
+        conn.pragma_update(None, "wal_autocheckpoint", WAL_SAFETY_PAGES)
             .map_err(|e| e.to_string())?;
         conn.execute_batch(
             "CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT NOT NULL);
@@ -545,7 +594,7 @@ impl Vault {
         clears: &[String],
         removals: &[(String, String)],
         merges: &[(String, String)],
-    ) -> Result<(), String> {
+    ) -> Result<Vec<bool>, String> {
         if self.locked() {
             return Err("vault is locked".into());
         }
@@ -569,6 +618,8 @@ impl Vault {
             )
             .map_err(|e| e.to_string())?;
         }
+        // Per merge: whether it moved any message.
+        let mut moved = Vec::with_capacity(merges.len());
         for (from, into) in merges {
             let rows: Vec<(String, String)> = {
                 let mut stmt = tx
@@ -582,6 +633,7 @@ impl Vault {
                 let collected: Result<Vec<_>, _> = mapped.collect();
                 collected.map_err(|e| e.to_string())?
             };
+            moved.push(!rows.is_empty());
             for (id, raw) in rows {
                 let Some(mut message) = self.open_row::<crate::store::StoredMessage>(
                     &format!("history:{from}:{id}"),
@@ -609,7 +661,8 @@ impl Vault {
             )
             .map_err(|e| e.to_string())?;
         }
-        tx.commit().map_err(|e| e.to_string())
+        tx.commit().map_err(|e| e.to_string())?;
+        Ok(moved)
     }
 
     pub fn history_page(

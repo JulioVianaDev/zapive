@@ -106,6 +106,7 @@ fn main() {
         log::warn!("[gfx] cannot set the app id: {error}");
     }
 
+    vault::spawn_checkpointer(paths::vault_path());
     let mut app_vault = match vault::Vault::new() {
         Ok(vault) => vault,
         Err(e) => {

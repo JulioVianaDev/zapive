@@ -703,6 +703,9 @@ pub struct Store {
     pending_merges: Vec<(String, String)>,
     older_cursors: HashMap<String, (i64, String)>,
     older_exhausted: HashSet<String>,
+    // Where the background indexing of a chat stopped (the oldest message
+    // indexed so far); see index_from_vault_until.
+    index_cursors: HashMap<String, (i64, String)>,
 }
 
 impl Store {
@@ -1953,17 +1956,38 @@ impl Store {
             .collect();
         let clears: Vec<String> = self.deleted_jids.iter().cloned().collect();
         let removals: Vec<(String, String)> = self.pending_removals.iter().cloned().collect();
-        vault.history_commit(&messages, &clears, &removals, &self.pending_merges)?;
-        for message in &messages {
-            if message.deleted {
-                self.search.remove(&message.jid, &message.id);
-            } else {
-                self.search.add(&message.jid, message);
-            }
+        let started = std::time::Instant::now();
+        let moved = vault.history_commit(&messages, &clears, &removals, &self.pending_merges)?;
+        let committed = started.elapsed();
+        for message in messages.iter().filter(|m| m.deleted) {
+            self.search.remove(&message.jid, &message.id);
         }
-        for (from, into) in std::mem::take(&mut self.pending_merges) {
-            self.search.remove_chat(&from);
-            self.index_from_vault(vault, &into);
+        self.search.add_many(
+            messages
+                .iter()
+                .filter(|m| !m.deleted)
+                .map(|m| (m.jid.as_str(), m)),
+        );
+        let total = started.elapsed();
+        if total.as_millis() >= 150 {
+            log::warn!(
+                "[store] slow save: {} messages in {} chats, history {} ms, search {} ms",
+                messages.len(),
+                self.dirty_jids.len(),
+                committed.as_millis(),
+                (total - committed).as_millis()
+            );
+        }
+        // Every known alias is queued again at load, in case a merge was
+        // cut short; re-indexing them all made each start stall for
+        // seconds. Only a merge that moved messages, or left the old id in
+        // the index, changes what search has to know.
+        let merges = std::mem::take(&mut self.pending_merges);
+        for ((from, into), moved) in merges.into_iter().zip(moved) {
+            if moved || self.search.has_chat(&from) {
+                self.search.remove_chat(&from);
+                self.index_from_vault(vault, &into);
+            }
         }
         self.deleted_jids.clear();
         self.pending_removals.clear();
@@ -1983,7 +2007,15 @@ impl Store {
     }
 
     pub fn save_checked(&mut self, vault: &Vault) -> Result<(), String> {
+        let started = std::time::Instant::now();
+        let mut steps: Vec<(&str, u128)> = Vec::new();
+        let mut lap = std::time::Instant::now();
+        let mut mark = |name: &'static str, steps: &mut Vec<(&str, u128)>| {
+            steps.push((name, lap.elapsed().as_millis()));
+            lap = std::time::Instant::now();
+        };
         self.flush_history(vault)?;
+        mark("history", &mut steps);
         vault.set_checked("store:chats", &to_json(&self.chats))?;
         vault.set_checked("store:drafts", &to_json(&self.drafts))?;
         vault.set_checked("store:contacts", &to_json(&self.contacts))?;
@@ -2017,8 +2049,22 @@ impl Store {
             vault.set_checked("store:labelchats", &to_json(&self.label_chats))?;
             self.labels_dirty = false;
         }
+        mark("settings", &mut steps);
         self.flush_history(vault)?;
+        mark("history again", &mut steps);
         self.search.save_to(vault);
+        mark("search", &mut steps);
+        if started.elapsed().as_millis() >= 150 {
+            let detail: Vec<String> = steps
+                .iter()
+                .map(|(name, ms)| format!("{name} {ms} ms"))
+                .collect();
+            log::warn!(
+                "[store] slow save, {} ms: {}",
+                started.elapsed().as_millis(),
+                detail.join(", ")
+            );
+        }
         Ok(())
     }
 
@@ -2046,29 +2092,55 @@ impl Store {
 
     pub fn index_from_vault(&mut self, vault: &Vault, jid: &str) {
         let jid = self.canon_owned(jid);
-        let mut cursor: Option<(i64, String)> = None;
+        // A full pass starts over, whatever a background pass had done.
+        self.index_cursors.remove(&jid);
+        while !self.index_from_vault_until(vault, &jid, None) {}
+    }
+
+    // Indexes a chat page by page, newest first, until it is done or
+    // `deadline` passes; true once the whole chat is indexed. A chat with
+    // years of history spans several calls, which keeps each one short
+    // enough for the UI thread.
+    pub fn index_from_vault_until(
+        &mut self,
+        vault: &Vault,
+        jid: &str,
+        deadline: Option<std::time::Instant>,
+    ) -> bool {
+        let jid = self.canon_owned(jid);
         loop {
+            let cursor = self.index_cursors.get(&jid).cloned();
             let Ok(page) = vault.history_page(
                 &jid,
                 cursor.as_ref().map(|(ts, id)| (*ts, id.as_str())),
                 100,
             ) else {
-                return;
+                // Unreadable: leave it for a later round, as before.
+                self.index_cursors.remove(&jid);
+                return true;
             };
-            for message in &page {
-                if !self
-                    .pending_removals
-                    .contains(&(jid.clone(), message.id.clone()))
-                {
-                    self.search.add(&jid, message);
-                }
-            }
+            // One transaction per page.
+            let pending_removals = &self.pending_removals;
+            self.search.add_many(
+                page.iter()
+                    .filter(|message| {
+                        !pending_removals.contains(&(jid.clone(), message.id.clone()))
+                    })
+                    .map(|message| (jid.as_str(), message)),
+            );
             if page.len() < 100 {
-                break;
+                self.index_cursors.remove(&jid);
+                self.search.mark_complete(&jid);
+                return true;
             }
-            cursor = page.first().map(|m| (m.timestamp, m.id.clone()));
+            if let Some(oldest) = page.first() {
+                self.index_cursors
+                    .insert(jid.clone(), (oldest.timestamp, oldest.id.clone()));
+            }
+            if deadline.is_some_and(|deadline| std::time::Instant::now() >= deadline) {
+                return false;
+            }
         }
-        self.search.mark_complete(&jid);
     }
 
     pub fn load_from(&mut self, vault: &Vault) {
@@ -2306,6 +2378,33 @@ mod tests {
         );
         message.kind = MessageKind::Text;
         message
+    }
+
+    #[test]
+    fn background_indexing_resumes_where_it_stopped() {
+        let path =
+            std::env::temp_dir().join(format!("zapive_index_resume_{}.db", std::process::id()));
+        crate::paths::remove_db(&path);
+        let mut vault = Vault::open_at(&path.to_string_lossy()).unwrap();
+        vault.open().unwrap();
+        let jid = "5511977770000@s.whatsapp.net";
+        let messages: Vec<StoredMessage> = (1..=250).map(|n| history_message(jid, n)).collect();
+        vault.history_commit(&messages, &[], &[], &[]).unwrap();
+        let mut store = Store::default();
+        // A deadline already behind us: every call does one page and stops.
+        let past = Some(std::time::Instant::now());
+        let mut calls = 0;
+        while !store.index_from_vault_until(&vault, jid, past) {
+            calls += 1;
+            let (_, oldest) = store.index_cursors.get(jid).cloned().unwrap();
+            // 250 newest-first pages of 100: stops after 151, then 51.
+            assert_eq!(oldest, format!("{:05}", 251 - 100 * calls));
+            assert!(calls < 5, "the cursor must move back each call");
+        }
+        assert_eq!(calls, 2);
+        assert!(!store.index_cursors.contains_key(jid));
+        drop(vault);
+        crate::paths::remove_db(&path);
     }
 
     #[test]

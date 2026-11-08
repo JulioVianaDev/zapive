@@ -111,6 +111,9 @@ pub(super) fn typing_participants(members: &HashMap<String, (u64, String)>) -> (
     (participants, extra)
 }
 
+// How much of the UI thread one index_backfill round may use.
+const BACKFILL_BUDGET: Duration = Duration::from_millis(100);
+
 impl Bridge {
     // Indexes cold chats that have messages on disk but no index yet;
     // a handful per tick so the UI never notices.
@@ -134,8 +137,17 @@ impl Bridge {
             .filter(|jid| seen.insert(jid.clone()) && !self.store.search.has_chat(jid))
             .take(6)
             .collect();
+        // A round stops once it has used its share of the UI thread, even
+        // in the middle of a chat with years of history; the next round
+        // carries on from there.
+        let deadline = Instant::now() + BACKFILL_BUDGET;
         for jid in &pending {
-            self.store.index_from_vault(&vault, jid);
+            let done = self
+                .store
+                .index_from_vault_until(&vault, jid, Some(deadline));
+            if !done || Instant::now() >= deadline {
+                break;
+            }
         }
         if !pending.is_empty() {
             self.store.search.save_to(&vault);

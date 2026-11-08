@@ -286,6 +286,29 @@ impl SearchIndex {
         }
     }
 
+    // Indexes a batch in one transaction. A save hands over every message
+    // of each changed chat; one commit per message made that the slowest
+    // thing on the UI thread during a history sync.
+    // Each item is (chat, message), as `add` takes them.
+    pub fn add_many<'a>(
+        &mut self,
+        messages: impl IntoIterator<Item = (&'a str, &'a StoredMessage)>,
+    ) {
+        let Some(index_key) = self.key.derive(INDEX_KEY_LABEL) else {
+            return;
+        };
+        let key = self.key.clone();
+        let Some(db) = self.db.as_mut() else { return };
+        let Ok(tx) = db.transaction() else { return };
+        for (jid, message) in messages {
+            if let Some(entry) = entry_of(message) {
+                // One bad row must not cost the rest of the batch.
+                let _ = insert_entry(&tx, &key, &index_key, jid, &entry);
+            }
+        }
+        let _ = tx.commit();
+    }
+
     #[cfg(test)]
     pub fn rebuild(&mut self, jid: &str, messages: &[StoredMessage]) {
         let Some(index_key) = self.key.derive(INDEX_KEY_LABEL) else {

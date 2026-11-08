@@ -318,7 +318,8 @@ thread_local! {
 // Runs a closure against the Bridge on the UI thread, from any thread.
 // Dropped silently if the app is shutting down.
 pub fn ui_apply(f: impl FnOnce(&mut Bridge) + Send + 'static) {
-    let _ = slint::invoke_from_event_loop(move || apply_now(f));
+    let name = std::any::type_name_of_val(&f);
+    let _ = slint::invoke_from_event_loop(move || apply_named(name, f));
 }
 
 // WhatsApp events: the client connects (and receives) while the vault is
@@ -327,8 +328,9 @@ pub fn ui_apply(f: impl FnOnce(&mut Bridge) + Send + 'static) {
 // would clobber the vault. Park them and let boot replay in order.
 // Work for the account on screen, whichever that is when it lands.
 pub fn wa_apply(f: impl FnOnce(&mut Bridge) + Send + 'static) {
+    let name = std::any::type_name_of_val(&f);
     let _ = slint::invoke_from_event_loop(move || {
-        apply_now(move |b| {
+        apply_named(name, move |b| {
             let epoch = b.epoch;
             b.apply_at(epoch, Box::new(f));
         })
@@ -339,8 +341,9 @@ pub fn wa_apply(f: impl FnOnce(&mut Bridge) + Send + 'static) {
 // its own; the work runs against that account's conversations, on screen
 // or in the background, and is dropped once the account is gone.
 pub fn wa_apply_at(epoch: u64, f: impl FnOnce(&mut Bridge) + Send + 'static) {
+    let name = std::any::type_name_of_val(&f);
     let _ = slint::invoke_from_event_loop(move || {
-        apply_now(move |b| b.apply_at(epoch, Box::new(f)));
+        apply_named(name, move |b| b.apply_at(epoch, Box::new(f)));
     });
 }
 
@@ -371,11 +374,26 @@ impl Bridge {
 }
 
 pub(super) fn apply_now(f: impl FnOnce(&mut Bridge)) {
+    apply_named(std::any::type_name_of_val(&f), f);
+}
+
+// Past this, the desktop starts to consider the window frozen (GNOME asks
+// to force-quit after ~5 s); anything this slow is logged by name.
+const SLOW_UI_WORK: Duration = Duration::from_millis(150);
+
+// `name` is the closure's type name, which spells out the function that
+// queued it -- enough to find what held the UI thread.
+fn apply_named(name: &'static str, f: impl FnOnce(&mut Bridge)) {
+    let started = Instant::now();
     BRIDGE.with(|cell| {
         if let Some(bridge) = cell.borrow_mut().as_mut() {
             f(bridge);
         }
     });
+    let spent = started.elapsed();
+    if spent >= SLOW_UI_WORK {
+        log::warn!("[ui] slow: {} ms in {name}", spent.as_millis());
+    }
 }
 
 // UI callbacks can fire synchronously from inside a Bridge method (e.g. a
@@ -386,10 +404,11 @@ pub(super) fn defer(f: impl FnOnce(&mut Bridge) + 'static) {
 }
 
 pub(super) fn defer_after(delay: Duration, f: impl FnOnce(&mut Bridge) + 'static) {
+    let name = std::any::type_name_of_val(&f);
     let cell = RefCell::new(Some(f));
     slint::Timer::single_shot(delay, move || {
         if let Some(f) = cell.borrow_mut().take() {
-            apply_now(f);
+            apply_named(name, f);
         }
     });
 }
@@ -398,6 +417,7 @@ impl Bridge {
     // ---- helpers ----
 
     pub(super) fn once(&mut self, ms: u64, f: impl FnOnce(&mut Bridge) + 'static) {
+        let name = std::any::type_name_of_val(&f);
         // Scheduled by a background account: it fires for that account.
         let f: LockedEvent = if self.headless {
             let epoch = self.epoch;
@@ -412,7 +432,7 @@ impl Bridge {
             Duration::from_millis(ms),
             move || {
                 if let Some(f) = cell.borrow_mut().take() {
-                    apply_now(f);
+                    apply_named(name, f);
                 }
             },
         );
