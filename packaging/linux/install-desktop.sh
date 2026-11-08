@@ -47,19 +47,19 @@ fi
 cat >"$APP_DIR/$APP_ID.desktop" <<EOF
 [Desktop Entry]
 Type=Application
-Name=Zapive
+Name=ZapZap
 Comment=Native WhatsApp desktop client
 Comment[pt_BR]=Cliente WhatsApp nativo para desktop
 Exec="$TARGET"
 Icon=$APP_ID
 Terminal=false
 Categories=Network;InstantMessaging;Chat;
-Keywords=whatsapp;chat;messaging;
+Keywords=whatsapp;chat;messaging;zapzap;zapive;
 StartupWMClass=zapive
 EOF
 refresh_menus
 
-echo "Installed: search for \"Zapive\" in your apps."
+echo "Installed: search for \"ZapZap\" in your apps."
 # What the AppImage needs at run time but Ubuntu may not have.
 missing=()
 ldconfig -p 2>/dev/null | grep -q 'libfuse\.so\.2' || missing+=(libfuse2t64)

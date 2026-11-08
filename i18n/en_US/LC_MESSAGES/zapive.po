@@ -375,7 +375,7 @@ msgid "notify.account_title"
 msgstr "{0} · {1}"
 
 msgid "notify.app_name"
-msgstr "Zapive"
+msgstr "ZapZap"
 
 msgid "picker.images"
 msgstr "Images"
@@ -387,7 +387,7 @@ msgid "picker.all"
 msgstr "All files"
 
 msgid "lang.restart"
-msgstr "Language saved. Restart Zapive to apply."
+msgstr "Language saved. Restart ZapZap to apply."
 
 msgid "update.checking"
 msgstr "Checking for updates…"
@@ -402,7 +402,7 @@ msgid "msg.deleted"
 msgstr "This message was deleted"
 
 msgid "tray.open"
-msgstr "Open Zapive"
+msgstr "Open ZapZap"
 
 msgid "tray.exit"
 msgstr "Quit"
@@ -805,7 +805,7 @@ msgstr "System"
 
 
 msgid "settings.general.launch_at_login"
-msgstr "Open Zapive when I sign in"
+msgstr "Open ZapZap when I sign in"
 
 msgid "settings.calls.title"
 msgstr "Calls"
@@ -1447,7 +1447,7 @@ msgid "alert.offline_title"
 msgstr "Cannot reach WhatsApp"
 
 msgid "alert.offline_body"
-msgstr "Zapive has been retrying without success. Check the connection and try again."
+msgstr "ZapZap has been retrying without success. Check the connection and try again."
 
 msgid "alert.retry"
 msgstr "Try again"
@@ -1562,7 +1562,7 @@ msgid "settings.privacy.read_receipts.description"
 msgstr "Let others know when you read messages or play voice notes."
 
 msgid "settings.search.default_subtitle"
-msgstr "Customize your Zapive experience"
+msgstr "Customize your ZapZap experience"
 
 msgid "settings.search.placeholder"
 msgstr "Search settings…"
@@ -1886,7 +1886,7 @@ msgid "translation.language.other"
 msgstr "Other language"
 
 msgid "translation.error.runtime_missing"
-msgstr "The translation library is missing from the Zapive installation. Reinstall Zapive to use translation."
+msgstr "The translation library is missing from the ZapZap installation. Reinstall ZapZap to use translation."
 
 msgid "translation.models.cancel"
 msgstr "Cancel"
@@ -1916,7 +1916,7 @@ msgid "translation.models.remove"
 msgstr "Remove"
 
 msgid "translation.models.remove_failed"
-msgstr "Could not remove the translation model. Close Zapive and try again."
+msgstr "Could not remove the translation model. Close ZapZap and try again."
 
 msgid "translation.models.size_mb"
 msgstr "{0} MB"
@@ -1948,7 +1948,7 @@ msgid "settings.mcp.enable"
 msgstr "Enable MCP server"
 
 msgid "settings.mcp.description"
-msgstr "Lets AI clients such as Claude and Cursor read and send WhatsApp messages through Zapive on this computer."
+msgstr "Lets AI clients such as Claude and Cursor read and send WhatsApp messages through ZapZap on this computer."
 
 msgid "settings.mcp.warning"
 msgstr "Anyone with this token can read your chats and send messages as you. Only share it with clients you trust."
@@ -2053,7 +2053,7 @@ msgid "settings.shortcuts.title"
 msgstr "Keyboard shortcuts"
 
 msgid "settings.shortcuts.description"
-msgstr "See every shortcut available in Zapive"
+msgstr "See every shortcut available in ZapZap"
 
 msgid "shortcuts.title"
 msgstr "Keyboard shortcuts"
@@ -2355,10 +2355,10 @@ msgid "settings.graphics.renderer"
 msgstr "Graphics renderer"
 
 msgid "settings.graphics.renderer.description"
-msgstr "How Zapive draws its window. Applies on the next start."
+msgstr "How ZapZap draws its window. Applies on the next start."
 
 msgid "settings.graphics.restart"
-msgstr "Restart Zapive to apply the new renderer."
+msgstr "Restart ZapZap to apply the new renderer."
 
 msgid "settings.graphics.active"
 msgstr "Selected: {0}"

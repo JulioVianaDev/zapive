@@ -375,7 +375,7 @@ msgid "notify.account_title"
 msgstr "{0} · {1}"
 
 msgid "notify.app_name"
-msgstr "Zapive"
+msgstr "ZapZap"
 
 msgid "picker.images"
 msgstr "Imagens"
@@ -387,7 +387,7 @@ msgid "picker.all"
 msgstr "Todos os arquivos"
 
 msgid "lang.restart"
-msgstr "Idioma salvo. Reinicie o Zapive para aplicar."
+msgstr "Idioma salvo. Reinicie o ZapZap para aplicar."
 
 msgid "update.checking"
 msgstr "Verificando atualizações…"
@@ -402,7 +402,7 @@ msgid "msg.deleted"
 msgstr "Essa mensagem foi apagada"
 
 msgid "tray.open"
-msgstr "Abrir Zapive"
+msgstr "Abrir ZapZap"
 
 msgid "tray.exit"
 msgstr "Sair"
@@ -805,7 +805,7 @@ msgstr "Sistema"
 
 
 msgid "settings.general.launch_at_login"
-msgstr "Abrir o Zapive ao entrar no sistema"
+msgstr "Abrir o ZapZap ao entrar no sistema"
 
 msgid "settings.calls.title"
 msgstr "Chamadas"
@@ -1447,7 +1447,7 @@ msgid "alert.offline_title"
 msgstr "Não foi possível conectar"
 
 msgid "alert.offline_body"
-msgstr "O Zapive tentou reconectar várias vezes sem sucesso. Verifique a conexão e tente de novo."
+msgstr "O ZapZap tentou reconectar várias vezes sem sucesso. Verifique a conexão e tente de novo."
 
 msgid "alert.retry"
 msgstr "Tentar de novo"
@@ -1562,7 +1562,7 @@ msgid "settings.privacy.read_receipts.description"
 msgstr "Avise outras pessoas quando você ler mensagens ou ouvir mensagens de voz."
 
 msgid "settings.search.default_subtitle"
-msgstr "Personalize sua experiência no Zapive"
+msgstr "Personalize sua experiência no ZapZap"
 
 msgid "settings.search.placeholder"
 msgstr "Buscar nas configurações…"
@@ -1888,7 +1888,7 @@ msgid "translation.language.other"
 msgstr "Outro idioma"
 
 msgid "translation.error.runtime_missing"
-msgstr "A biblioteca de tradução não está na instalação do Zapive. Reinstale o Zapive para usar a tradução."
+msgstr "A biblioteca de tradução não está na instalação do ZapZap. Reinstale o ZapZap para usar a tradução."
 
 msgid "translation.models.cancel"
 msgstr "Cancelar"
@@ -1918,7 +1918,7 @@ msgid "translation.models.remove"
 msgstr "Remover"
 
 msgid "translation.models.remove_failed"
-msgstr "Não foi possível remover o modelo de tradução. Feche o Zapive e tente novamente."
+msgstr "Não foi possível remover o modelo de tradução. Feche o ZapZap e tente novamente."
 
 msgid "translation.models.size_mb"
 msgstr "{0} MB"
@@ -1950,7 +1950,7 @@ msgid "settings.mcp.enable"
 msgstr "Ativar servidor MCP"
 
 msgid "settings.mcp.description"
-msgstr "Permite que clientes de IA, como Claude e Cursor, leiam e enviem mensagens do WhatsApp pelo Zapive neste computador."
+msgstr "Permite que clientes de IA, como Claude e Cursor, leiam e enviem mensagens do WhatsApp pelo ZapZap neste computador."
 
 msgid "settings.mcp.warning"
 msgstr "Qualquer pessoa com este token pode ler suas conversas e enviar mensagens em seu nome. Compartilhe-o apenas com clientes de confiança."
@@ -2055,7 +2055,7 @@ msgid "settings.shortcuts.title"
 msgstr "Atalhos de teclado"
 
 msgid "settings.shortcuts.description"
-msgstr "Veja todos os atalhos disponíveis no Zapive"
+msgstr "Veja todos os atalhos disponíveis no ZapZap"
 
 msgid "shortcuts.title"
 msgstr "Atalhos de teclado"
@@ -2357,10 +2357,10 @@ msgid "settings.graphics.renderer"
 msgstr "Renderizador gráfico"
 
 msgid "settings.graphics.renderer.description"
-msgstr "Como o Zapive desenha a janela. Vale a partir do próximo início."
+msgstr "Como o ZapZap desenha a janela. Vale a partir do próximo início."
 
 msgid "settings.graphics.restart"
-msgstr "Reinicie o Zapive para aplicar o novo renderizador."
+msgstr "Reinicie o ZapZap para aplicar o novo renderizador."
 
 msgid "settings.graphics.active"
 msgstr "Selecionado: {0}"

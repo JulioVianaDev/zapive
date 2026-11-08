@@ -3,7 +3,7 @@ pub fn trim_working_set() {}
 
 pub fn focus_window() {
     let _ = std::process::Command::new("wmctrl")
-        .args(["-a", "Zapive"])
+        .args(["-a", "ZapZap"])
         .spawn();
 }
 
@@ -11,7 +11,7 @@ pub fn focus_window() {
 // translated: that is what identifies the window here.
 pub fn focus_call_window() {
     let _ = std::process::Command::new("wmctrl")
-        .args(["-a", "Zapive Call"])
+        .args(["-a", "ZapZap Call"])
         .spawn();
 }
 
@@ -51,7 +51,7 @@ pub fn autostart_set(on: bool) -> Result<(), String> {
     let entry = format!(
         "[Desktop Entry]\n\
          Type=Application\n\
-         Name=Zapive\n\
+         Name=ZapZap\n\
          Exec=\"{}\" --autostart\n\
          Icon=io.github.wilssola.Zapive\n\
          Terminal=false\n\
@@ -78,7 +78,7 @@ pub fn toast(title: &str, body: &str, payload: super::ToastPayload) {
     notification
         .summary(title)
         .body(body)
-        .appname("Zapive")
+        .appname("ZapZap")
         .icon("io.github.wilssola.Zapive")
         .hint(notify_rust::Hint::DesktopEntry(
             "io.github.wilssola.Zapive".into(),

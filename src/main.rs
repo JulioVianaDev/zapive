@@ -1017,7 +1017,7 @@ fn make_tray() -> Option<(
     menu.append_items(&[&open, &exit]).ok()?;
     let tray = tray_icon::TrayIconBuilder::new()
         .with_icon(icon)
-        .with_tooltip("Zapive")
+        .with_tooltip("ZapZap")
         .with_menu(Box::new(menu))
         .build()
         .ok()?;

@@ -1015,7 +1015,7 @@ export component SettingsLayer inherits ModalLayer {
                         if ((root.settings-query == "" && (root.settings-section == "updates")) || (root.settings-query != "" && root.settings-matches(@tr("settings.about.title") + " " + @tr("settings.category.updates.title")))): SettingsCard {
                             title: @tr("settings.about.title");
                             SettingsRow {
-                                label: "Zapive";
+                                label: "ZapZap";
                                 detail: root.update-state == 1 ? @tr("settings.about.update_available", root.update-version)
                                     : root.update-state == 2 ? @tr("settings.about.update_downloading_button")
                                     : root.update-state == 3 ? @tr("settings.about.update_restart_required", root.update-version)

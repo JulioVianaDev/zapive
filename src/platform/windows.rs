@@ -62,7 +62,7 @@ pub fn set_title_bar_theme(dark: bool, glass: bool) {
     };
 
     unsafe {
-        let Some(hwnd) = find_own_window("Zapive") else {
+        let Some(hwnd) = find_own_window("ZapZap") else {
             return;
         };
         let dark_mode = BOOL::from(dark);
@@ -136,7 +136,7 @@ pub fn trim_working_set() {
 }
 
 pub fn focus_window() {
-    if let Some(hwnd) = find_own_window("Zapive") {
+    if let Some(hwnd) = find_own_window("ZapZap") {
         raise(hwnd);
     }
 }
@@ -145,7 +145,7 @@ pub fn focus_window() {
 // same way the tray pulls the main one. Its title is deliberately not
 // translated: that is what identifies the window here.
 pub fn focus_call_window() {
-    if let Some(hwnd) = find_own_window("Zapive Call") {
+    if let Some(hwnd) = find_own_window("ZapZap Call") {
         raise(hwnd);
     }
 }
