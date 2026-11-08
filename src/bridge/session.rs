@@ -42,7 +42,8 @@ impl Bridge {
         // On unless turned off, so existing installs keep their banners.
         self.notifications = vault.setting_get("notifications").as_deref() != Some("0");
         self.ui.set_notifications(self.notifications);
-        self.notify_previews = vault.setting_get("notify_previews").as_deref() == Some("1");
+        // On unless turned off: a banner says who wrote and what.
+        self.notify_previews = vault.setting_get("notify_previews").as_deref() != Some("0");
         self.ui.set_notify_previews(self.notify_previews);
         self.ui
             .set_message_sound(vault.setting_get("message_sound").as_deref() != Some("0"));

@@ -484,10 +484,20 @@ impl Bridge {
                     system_message,
                 );
             }
-            if Some(&jid) == self.current_jid.as_ref() {
+            // The open chat counts as read only while someone can see it.
+            // With the window closed (it keeps running) or behind another
+            // app, its messages are announced like any other chat's.
+            // A background account's open chat is never the one on screen.
+            let open_chat = Some(&jid) == self.current_jid.as_ref();
+            let seen_now = open_chat
+                && !self.headless
+                && self.ui.get_window_active()
+                && self.ui.window().is_visible();
+            if open_chat {
                 self.push_message_row(&jid, &translation_id);
                 self.send_view_receipts(&jid);
-            } else if !from_me {
+            }
+            if !seen_now && !from_me {
                 let mut quiet = false;
                 if let Some(meta) = self.store.chats.get_mut(&jid) {
                     meta.unread += 1;

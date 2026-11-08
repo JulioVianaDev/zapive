@@ -478,6 +478,20 @@ pub fn clean_notification_thumbnails() {
     let _ = std::fs::remove_dir_all(crate::paths::cache_dir().join(".toast"));
 }
 
+// The chat's picture for a notification that carries no media of its own.
+// Cached avatars are full-size, so this shrinks a copy to banner size
+// before it goes through the same short-lived plain file as a thumbnail.
+pub fn notification_avatar(bytes: &[u8]) -> Option<PathBuf> {
+    const SIDE: u32 = 192;
+    let image = image::load_from_memory(bytes).ok()?;
+    let small = image.resize_to_fill(SIDE, SIDE, image::imageops::FilterType::Triangle);
+    let mut encoded = std::io::Cursor::new(Vec::new());
+    image::DynamicImage::ImageRgb8(small.to_rgb8())
+        .write_to(&mut encoded, image::ImageFormat::Jpeg)
+        .ok()?;
+    notification_thumbnail(encoded.get_ref())
+}
+
 pub fn notification_thumbnail(bytes: &[u8]) -> Option<PathBuf> {
     const MAX_INPUT: usize = 64 * 1024;
     const MAX_DIMENSION: u32 = 1024;

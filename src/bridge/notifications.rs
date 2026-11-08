@@ -101,6 +101,14 @@ impl Bridge {
         }
     }
 
+    // The chat's cached picture as a plain file a notification can show;
+    // none when the chat has no picture or it was never downloaded.
+    fn notification_avatar(&self, jid: &str) -> Option<std::path::PathBuf> {
+        let bytes =
+            crate::media::read_cached(&self.media_key, &crate::media::avatar_cache_path(jid))?;
+        crate::media::notification_avatar(&bytes)
+    }
+
     pub(super) fn flush_notifications(&mut self) {
         self.notify_queued = false;
         let queue = std::mem::take(&mut self.notify_queue);
@@ -182,6 +190,10 @@ impl Bridge {
                 } else {
                     t("notify.new_message")
                 };
+                // No picture in the message: show who it is from.
+                if self.notify_previews && payload.thumbnail.is_none() {
+                    payload.thumbnail = self.notification_avatar(&jid);
+                }
                 if let Some(path) = &payload.thumbnail {
                     self.notification_thumbnails
                         .insert(token.clone(), path.clone());
